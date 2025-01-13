@@ -56,7 +56,7 @@ func getCarosel(w http.ResponseWriter, r *http.Request) {
 // API để lấy dữ liệu Products
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	// Truy vấn chỉ các sản phẩm có sale = "*"
-	rows, err := db.Query("SELECT id, image, name, originalPrice, salePrice, sale FROM Products WHERE sale = '*'")
+	rows, err := db.Query("SELECT id, image, name, brand, originalPrice, salePrice, sale, rate FROM Products WHERE sale = '*'")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -66,10 +66,10 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	var products []map[string]interface{}
 	for rows.Next() {
 		var id int
-		var image, name, originalPrice, salePrice, sale string
+		var image, name, brand, originalPrice, salePrice, sale, rate string
 
 		// Scan dữ liệu vào các biến
-		if err := rows.Scan(&id, &image, &name, &originalPrice, &salePrice, &sale); err != nil {
+		if err := rows.Scan(&id, &image, &name, &brand, &originalPrice, &salePrice, &sale, &rate); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -79,9 +79,11 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 			"id":            id,
 			"image":         image,
 			"name":          name,
+			"brand":		 brand,	
 			"originalPrice": originalPrice,
 			"salePrice":     salePrice,
-			"sale":          sale, // Thêm cột sale vào trả về
+			"sale":          sale, 
+			"rate":          rate,
 		})
 	}
 

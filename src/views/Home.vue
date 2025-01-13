@@ -38,6 +38,8 @@
             />
             <div class="product-details">
               <div class="product-name">{{ product.name }}</div>
+              <div class="product-brand">{{ product.brand || 'Brand not available' }}</div>
+
               <div class="product-prices">
                 <div class="original-price">
                   {{ product.originalPrice }} VND
@@ -48,7 +50,7 @@
               </div>
               <div class="rate">
                 <el-rate
-                  v-model="value"
+                  v-model="product.rate"
                   disabled
                   show-score
                   text-color="#ff9900"
@@ -74,7 +76,6 @@ export default {
     ElCarouselItem,
   },
   setup() {
-    const value = ref(5);
     const images = ref([]);
     const products = ref([]);
     const hours = ref("00");
@@ -96,6 +97,7 @@ export default {
       try {
         const response = await axios.get("http://localhost:8080/api/products");
         products.value = response.data;
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -130,19 +132,13 @@ export default {
       setInterval(calculateTimeLeft, 1000);
     });
 
-    return { images, products, hours, minutes, seconds, value };
+    return { images, products, hours, minutes, seconds };
   },
 };
 </script>
 
   <style scoped>
-html,
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
+
 
 .carousel-container {
   width: 90%;
@@ -212,6 +208,7 @@ body {
 }
 
 .product-details {
+  margin-left: 10px;
   margin-top: 10px;
   text-align: center;
 }
@@ -228,6 +225,15 @@ body {
   margin-top: 5px;
   font-size: 16px;
 }
+.product-brand{
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  color:#333;
+  font-weight:bolder;
+  margin-top: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
 
 .rate {
   display: flex;
@@ -236,7 +242,7 @@ body {
 
 .original-price {
   text-decoration: line-through;
-  color: gray;
+  color: darkgray;
 }
 
 .sale-price {
