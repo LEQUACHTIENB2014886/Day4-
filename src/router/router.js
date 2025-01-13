@@ -10,9 +10,7 @@ const routes = [
   { path: '/contact', component: Contact },
   { path: '/login', component: Login },
   { path: '/cart', component: Cart },
-  { path: '/products', component: Products },
-  { 
-  }
+  { path: '/products', component: Products }
 ];
 
 const router = createRouter({

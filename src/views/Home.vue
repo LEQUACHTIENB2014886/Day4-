@@ -31,6 +31,16 @@
       <el-row :gutter="20">
         <el-col :span="6" v-for="(product, index) in products" :key="index">
           <div class="grid-content">
+            <div class="percent_sale">
+              <a
+                >{{
+                  calculatePercentSale(
+                    product.originalPrice,
+                    product.salePrice
+                  )
+                }}%</a
+              >
+            </div>
             <img
               :src="product.image"
               :alt="product.name"
@@ -38,7 +48,9 @@
             />
             <div class="product-details">
               <div class="product-name">{{ product.name }}</div>
-              <div class="product-brand">{{ product.brand || 'Brand not available' }}</div>
+              <div class="product-brand">
+                {{ product.brand || "Brand not available" }}
+              </div>
 
               <div class="product-prices">
                 <div class="original-price">
@@ -50,7 +62,8 @@
               </div>
               <div class="rate">
                 <el-rate
-                  v-model="product.rate"
+                  :model-value="Number(product.rate)"
+                  @update:modelValue="fn"
                   disabled
                   show-score
                   text-color="#ff9900"
@@ -64,90 +77,88 @@
     </div>
   </div>
 </template>
-
-<script>
-import { ElCarousel, ElCarouselItem } from "element-plus";
+<script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios"; // Import axios
 
-export default {
-  components: {
-    ElCarousel,
-    ElCarouselItem,
-  },
-  setup() {
-    const images = ref([]);
-    const products = ref([]);
-    const hours = ref("00");
-    const minutes = ref("00");
-    const seconds = ref("00");
+// Khai báo các biến reactive
+const images = ref([]);
+const products = ref([]);
+const hours = ref("00");
+const minutes = ref("00");
+const seconds = ref("00");
 
-    // Lấy dữ liệu carousel
-    const fetchCaroselImages = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/carosel");
-        images.value = response.data;
-      } catch (error) {
-        console.error("Error fetching carousel images:", error);
-      }
-    };
-
-    // Lấy dữ liệu sản phẩm
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/products");
-        products.value = response.data;
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-
-    // Tính toán thời gian đếm ngược
-    const calculateTimeLeft = () => {
-      const targetDate = new Date("2025-02-22T00:00:00");
-      const currentDate = new Date();
-      const difference = targetDate - currentDate;
-
-      if (difference > 0) {
-        const hrs = Math.floor(
-          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        );
-        const mins = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((difference % (1000 * 60)) / 1000);
-
-        hours.value = String(hrs).padStart(2, "0");
-        minutes.value = String(mins).padStart(2, "0");
-        seconds.value = String(secs).padStart(2, "0");
-      } else {
-        hours.value = minutes.value = seconds.value = "00";
-      }
-    };
-
-    // Gọi API và bắt đầu tính toán khi component được mount
-    onMounted(() => {
-      fetchCaroselImages();
-      fetchProducts();
-      calculateTimeLeft();
-      setInterval(calculateTimeLeft, 1000);
-    });
-
-    return { images, products, hours, minutes, seconds };
-  },
+// Lấy dữ liệu carousel
+const getCaroselImages = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/api/carosel");
+    images.value = response.data;
+  } catch (error) {
+    console.error("Error getting carousel images:", error);
+  }
 };
+
+// Lấy dữ liệu sản phẩm
+const getProducts = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/api/products");
+    products.value = response.data;
+    console.log(response.data);
+  } catch (error) {
+    console.error("Error getting products:", error);
+  }
+};
+
+// Tính toán phần trăm giảm giá
+const calculatePercentSale = (originalPrice, salePrice) => {
+  // Ép kiểu để chắc chắn rằng các giá trị là số
+  originalPrice = parseFloat(originalPrice);
+  salePrice = parseFloat(salePrice);
+
+  // Kiểm tra nếu giá trị không hợp lệ (NaN)
+  if (isNaN(originalPrice) || isNaN(salePrice)) return 0;
+
+  // Tính toán phần trăm giảm giá
+  return (((originalPrice - salePrice) / originalPrice) * 100).toFixed(0); // Giới hạn 0 chữ số thập phân
+};
+
+// Tính toán thời gian đếm ngược
+const calculateTimeLeft = () => {
+  const targetDate = new Date("2025-02-22T00:00:00");
+  const currentDate = new Date();
+  const difference = targetDate - currentDate;
+
+  if (difference > 0) {
+    const hrs = Math.floor(
+      (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const mins = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((difference % (1000 * 60)) / 1000);
+
+    hours.value = String(hrs).padStart(2, "0");
+    minutes.value = String(mins).padStart(2, "0");
+    seconds.value = String(secs).padStart(2, "0");
+  } else {
+    hours.value = minutes.value = seconds.value = "00";
+  }
+};
+
+// Gọi API và bắt đầu tính toán khi component được mount
+onMounted(() => {
+  getCaroselImages();
+  getProducts();
+  calculateTimeLeft();
+  setInterval(calculateTimeLeft, 1000);
+});
 </script>
 
-  <style scoped>
-
-
+<style scoped>
 .carousel-container {
-  width: 90%;
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   margin-top: 10px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .carousel-item {
@@ -159,7 +170,7 @@ export default {
 
 .carousel-image {
   width: 100%;
-  height: 90%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -210,27 +221,24 @@ export default {
 .product-details {
   margin-left: 10px;
   margin-top: 10px;
-  text-align: center;
 }
 
 .product-name {
   font-size: 18px;
   font-weight: bold;
   color: black;
+  text-align: center;
 }
 
 .product-prices {
-  display: flex;
-  justify-content: space-between;
   margin-top: 5px;
   font-size: 16px;
 }
-.product-brand{
-  display: flex;
-  justify-content: space-between;
+
+.product-brand {
   font-size: 15px;
-  color:#333;
-  font-weight:bolder;
+  color: #333;
+  font-weight: bolder;
   margin-top: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
@@ -250,6 +258,17 @@ export default {
   color: red;
 }
 
+.percent_sale {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+  font-size: 16px;
+  padding: 5px;
+  border-radius: 5px;
+}
+
 .grid-content {
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -257,6 +276,7 @@ export default {
   margin-bottom: 10px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative; /* Để phần trăm sale nằm trên hình ảnh */
 }
 
 .grid-content:hover {
